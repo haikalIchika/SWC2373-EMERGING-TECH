@@ -1,0 +1,103 @@
+import requests
+
+# Ask user to insert their webex token
+webex_token = input("Enter your Webex API token: ")
+
+base_url = "https://webexapis.com/v1"
+
+# Authorization for webex token
+headers = {
+    "Authorization": f"Bearer {webex_token}"
+}
+
+def test_connection():
+    try:
+        response = requests.get(f"{base_url}/people/me", headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        print("Connection test successful!")
+    except requests.exceptions.RequestException as e:
+        print("Connection Failed!:", str(e))
+
+def user_information():
+    try:
+        response = requests.get(f"{base_url}/people/me", headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        print("User Information:")
+        print(f"Display Name: {data['displayName']}")
+        print(f"Nickname: {data['nickName']}")
+        print(f"Emails: {', '.join(data['emails'])}")
+    except requests.exceptions.RequestException as e:
+        print("No user information found!:", str(e))
+
+def list_rooms():
+    try:
+        response = requests.get(f"{base_url}/rooms", headers=headers)
+        response.raise_for_status()
+        rooms = response.json()
+        print("List of Rooms:")
+        for room in rooms['items'][:5]:
+            print(f"Room ID: {room['id']}")
+            print(f"Room Title: {room['title']}")
+            print(f"Date Created: {room['created']}")
+            print(f"Last Activity: {room['lastActivity']}")
+            print("-" * 30)
+    except requests.exceptions.RequestException as e:
+        print("Failed to list rooms:", str(e))
+
+def create_room():
+    title = input("Enter the title for the new room: ")
+    room_data = {
+        "title": title
+    }
+    try:
+        response = requests.post(f"{base_url}/rooms", json=room_data, headers=headers)
+        response.raise_for_status()
+        print("Room created successfully!")
+    except requests.exceptions.RequestException as e:
+        print("Failed to create room:", str(e))
+
+def send_message(room_id):
+    message = input("Enter the message you want to send: ")
+    message_data = {
+        "roomId": room_id,
+        "text": message
+    }
+    try:
+        response = requests.post(f"{base_url}/messages", json=message_data, headers=headers)
+        response.raise_for_status()
+        print("Message sent successfully!")
+    except requests.exceptions.RequestException as e:
+        print("Failed to send message:", str(e))
+
+# Main menu
+while True:
+    print("\nMain Menu:")
+    print("0. Test Connection")
+    print("1. Display User Information")
+    print("2. List Rooms")
+    print("3. Create Room")
+    print("4. Send Message to a Room")
+    print("5. Exit")
+
+    choice = input("Enter your choice (0-5): ")
+
+    if choice == "0":
+        test_connection()
+    elif choice == "1":
+        user_information()
+    elif choice == "2":
+        list_rooms()
+    elif choice == "3":
+        create_room()
+    elif choice == "4":
+        list_rooms()
+        room_id = input("Enter the Room ID to send a message to: ")
+        send_message(room_id)
+    elif choice == "5":
+        break
+    else:
+        print("Invalid choice. Please enter a valid option (0-5).")
+
+print("Goodbye!")
